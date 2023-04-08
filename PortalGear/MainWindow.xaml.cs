@@ -130,7 +130,6 @@ namespace PortalGear
                 isAttached = false;
                 attachBtn.Content = "Attach";
                 kbHook.Dispose();
-
                 return;
             }
             if (curr_pos_addr != 0)
@@ -179,12 +178,16 @@ namespace PortalGear
 
         private void handle_keys(object sender, KeyboardHookEventArgs e)
         {
-            if (true)
-            {
-                IntPtr frontiers_wnd = frontiersProc.MainWindowHandle;
-                IntPtr fg_wnd = GetForegroundWindow();
-          
-                KeyCode keycode = e.Data.KeyCode;
+			if (isAttached)
+			{
+				IntPtr frontiers_wnd = frontiersProc.MainWindowHandle;
+				IntPtr fg_wnd = GetForegroundWindow();
+				if (!frontiers_wnd.Equals(fg_wnd))
+				{
+					return;
+				}
+
+				KeyCode keycode = e.Data.KeyCode;
                 if (keycode == KeyCode.VcF9)
                 {
                     saveBtn_OnClick(sender, e);
@@ -455,8 +458,10 @@ namespace PortalGear
                         }
 
                     };
-                    csvStrings.Clear();             
-                }
+                    csvStrings.Clear();
+					recordPosition = false;
+					recordingDuration.Text = "";
+				}
                 catch (Exception ex)
                 {
                     // do i need to do anything here?
