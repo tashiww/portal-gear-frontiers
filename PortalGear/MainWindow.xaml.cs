@@ -4,6 +4,7 @@ using Reloaded.Memory.Sources;
 using SharpHook;
 using SharpHook.Native;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -80,7 +81,10 @@ namespace PortalGear
         private Quaternion current_rotation;
         private Vec3 current_pos = new Vec3();
 
-        StreamWriter sw;
+        private List<string> csvStrings = new List<string>();
+        private bool recordPosition = false;
+
+        private int initialTimestamp;
 
         public static double RadiansToDegrees(double radians)
         {
@@ -107,8 +111,8 @@ namespace PortalGear
                 return (float)RadiansToDegrees(angle + Math.PI);
             }
         }
-
-        private void posUpdate_Tick(object sender, EventArgs e)
+   
+		private void posUpdate_Tick(object sender, EventArgs e)
         {
             if (!isAttached)
             {
@@ -126,11 +130,6 @@ namespace PortalGear
                 isAttached = false;
                 attachBtn.Content = "Attach";
                 kbHook.Dispose();
-                if (sw != null && sw.BaseStream != null)
-                {
-                    sw.Close();
-                }
-                filename.Text = "";
 
                 return;
             }
@@ -150,10 +149,22 @@ namespace PortalGear
                     $"X: {current_pos.x:F2}\nY: {current_pos.y:F2}\nZ: {current_pos.z:F2}"
                     + $"\nHorizontal Speed: {plane_speed:F2}\nVertical Speed: {vertical_speed:F2}"
                     + $"\nHeading: {ToHeading(current_rotation):F2}";
-                posTextBlock.Text = block_text;
 
-                string csvText = $"{current_pos.x:F0},{current_pos.y:F0},{current_pos.z:F0}";
+				posTextBlock.Text = block_text;
+				int duration = (int)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - initialTimestamp;
 
+                if (recordPosition)
+                {
+                    recordingDuration.Text = "Time: " + duration / 1000;
+                }
+				string csvText = $"{current_pos.x:F0},{current_pos.y:F0},{current_pos.z:F0}";
+                if (recordPosition && csvText != previousLine)
+                {
+                    csvStrings.Add(csvText + "," + duration);
+                    csvLength.Text = "Lines: " + csvStrings.Count().ToString();
+
+				}
+                /*
                 if (sw != null && sw.BaseStream != null && csvText != previousLine)
                 {
                     try
@@ -161,21 +172,18 @@ namespace PortalGear
                         sw.WriteLine(csvText);
                     }
                     catch (System.NullReferenceException) { }
-                }
+                }*/
                 previousLine = csvText;
             }
         }
 
         private void handle_keys(object sender, KeyboardHookEventArgs e)
         {
-            if (isAttached)
+            if (true)
             {
                 IntPtr frontiers_wnd = frontiersProc.MainWindowHandle;
                 IntPtr fg_wnd = GetForegroundWindow();
-                if (!frontiers_wnd.Equals(fg_wnd))
-                {
-                    return;
-                }
+          
                 KeyCode keycode = e.Data.KeyCode;
                 if (keycode == KeyCode.VcF9)
                 {
@@ -323,7 +331,7 @@ namespace PortalGear
                 posUpdateTimer.Interval = new TimeSpan(0, 0, 0, 0, 16);
                 posUpdateTimer.Tick += new EventHandler(posUpdate_Tick);
                 posUpdateTimer.Start();
-                kbHook = new SimpleGlobalHook(true);
+                kbHook = new SimpleGlobalHook(false);
                 kbHook.KeyPressed += handle_keys;
                 kbTask = kbHook.RunAsync();
             }
@@ -343,12 +351,7 @@ namespace PortalGear
                 );
                 isAttached = false;
                 attachBtn.Content = "Attach";
-                filename.Text = "";
-                if (sw != null && sw.BaseStream != null)
-                {
-                    sw.Close();
-                }
-
+      
                 kbHook.Dispose();
             }
         }
@@ -433,39 +436,45 @@ namespace PortalGear
         {
             Debug.WriteLine("trying to open new file");
 
-            Microsoft.Win32.OpenFileDialog dlg = new Microsoft.Win32.OpenFileDialog();
+            Microsoft.Win32.SaveFileDialog dlg = new Microsoft.Win32.SaveFileDialog();
             dlg.FileName = ""; // Default file name
             dlg.DefaultExt = ".txt"; // Default file extension
             dlg.Filter = "Text documents (.txt)|*.txt"; // Filter files by extension
             Nullable<bool> result = dlg.ShowDialog();
 
-            if (result == true)
+            if (result == true && csvStrings != null)
             {
-                filename.Text = dlg.SafeFileName;
 
                 try
                 {
-                    sw = (new StreamWriter(dlg.FileName));
+                    using (StreamWriter sw = (new StreamWriter(dlg.FileName)))
+                    {
+                        foreach(string row in csvStrings)
+                        {
+                            sw.WriteLine(row);
+                        }
 
-                    Debug.WriteLine("opened new file");
+                    };
+                    csvStrings.Clear();             
                 }
-                catch (SecurityException ex)
+                catch (Exception ex)
                 {
-                    MessageBox.Show(
-                        $"Security error.\n\nError message: {ex.Message}\n\n"
-                            + $"Details:\n\n{ex.StackTrace}"
-                    );
+                    // do i need to do anything here?
                 }
             }
         }
 
-        private void CloseBtn_Click(object sender, RoutedEventArgs e)
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (sw != null && sw.BaseStream != null)
-            {
-                sw.Close();
-            }
-            filename.Text = "";
-        }
-    }
+			recordPosition = isAttached;
+			initialTimestamp = (int)DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+		}
+
+		private void StopBtn_Click(object sender, RoutedEventArgs e)
+		{
+            recordPosition = false;
+            recordingDuration.Text = "";
+		}
+	}
 }

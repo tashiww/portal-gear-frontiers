@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PortalGear"
         mc:Ignorable="d"
-         Title="Portal Gear Beta 3" Height="550" Width="625" Closing="MainWindow_OnClosing">
+         Title="Portal Gear Beta 4" Height="550" Width="625" Closing="MainWindow_OnClosing">
     <Grid ShowGridLines="False" Background="Black">
         <Grid.ColumnDefinitions>
             <ColumnDefinition></ColumnDefinition>
@@ -40,12 +40,17 @@
         <TextBox GotFocus="selectAll" Name="ypos" Grid.Row="2" Grid.ColumnSpan="2" Margin="156,25,0,0" Grid.RowSpan="2" />
         <TextBox GotFocus="selectAll" Name="zpos" Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Margin="156,25,156,0" Grid.RowSpan="2" />
         <Button Click="Submit_OnClick" Grid.ColumnSpan="1" Grid.Row="2" Grid.Column="3"  Name="submitBtn" TextBlock.FontFamily="UD Digi Kyokasho NK-R" TextBlock.Foreground="White" BorderBrush="#FFC3C3C3" Foreground="Black" Margin="0,25,0,0" Grid.RowSpan="2">Move to</Button>
-        <Button Click="OpenBtn_Click" Grid.Row="4" Grid.Column="0" Margin="10,20,10,67" Name="openBtn" FontFamily="UD Digi Kyokasho NK-R">Select Output File</Button>
-        <TextBlock Grid.ColumnSpan="2" Height="20" Grid.Row="4" Grid.Column="0" Name="filename" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,70,0,28" />
-        <Button Click="CloseBtn_Click" Grid.Row="4" Grid.Column="2" Margin="10,20,10,37" Name="closeBtn" FontFamily="UD Digi Kyokasho NK-R">Close Output File</Button>
+        <Button Click="OpenBtn_Click" Grid.Row="4" Grid.Column="2" Margin="10,31,10,28" x:Name="openBtn" FontFamily="UD Digi Kyokasho NK-R">
+            <TextBlock TextWrapping="Wrap" Text=" Dump Positions as CSV" TextAlignment="Center" Width="95"></TextBlock>
+        </Button>
+        <TextBlock Grid.ColumnSpan="1" Height="20" Grid.Row="4" Grid.Column="0" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,70,0,28" />
+        <Button Click="StopBtn_Click" Grid.Row="4" Margin="10,10,10,76" Name="stopBtn" FontFamily="UD Digi Kyokasho NK-R" Grid.Column="1">Stop Recording</Button>
 
 
         <Button Click="AttachBtn_OnClick" Grid.Row="4" Grid.Column="3" Margin="10,20,10,37" Name="attachBtn" FontFamily="UD Digi Kyokasho NK-R">Attach</Button>
+        <Button Click="StartBtn_Click" Grid.Row="4" Margin="10,10,10,76" Name="startBtn" FontFamily="UD Digi Kyokasho NK-R" Content="Start Recording"/>
+        <TextBlock Grid.Row="4"  Name="recordingDuration" HorizontalAlignment="Center" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,70,0,22" Width="104" TextAlignment="Center"></TextBlock>
+        <TextBlock Grid.Row="4"  x:Name="csvLength" HorizontalAlignment="Center" FontFamily="UD Digi Kyokasho NK-R" Foreground="White" Margin="0,70,0,22" Width="104" TextAlignment="Center" Grid.Column="1"/>
 
 
     </Grid>
